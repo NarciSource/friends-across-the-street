@@ -1,8 +1,8 @@
-window.addEventListener('DOMContentLoaded', event => {    
-
+window.addEventListener('DOMContentLoaded', event => {
     navigator.vibrate = navigator.vibrate || navigator.webkitVibrate || navigator.mozVibrate || navigator.msVibrate;
 
-    postdata = { }
+    var name = prompt("당신의 이름은 무엇인가요?");
+    position = { }
 
     noticeBtn = document.getElementById('btn');
     noticeBtn.addEventListener('click', enableAlarm);
@@ -10,13 +10,14 @@ window.addEventListener('DOMContentLoaded', event => {
     function enableAlarm(event) {
         function alarm() {
             
+            // audio alarm
             var audio = new Audio('/static/assets/sounds/audio.mp3');
             audio.play();
 
-
+            // visible alarm
             event.target.classList.add('red', 'blink');
 
-
+            // vibrate alarm
             if (navigator.vibrate) {
                 navigator.vibrate([500,500,500,500,500,500,500]);
             }
@@ -28,12 +29,11 @@ window.addEventListener('DOMContentLoaded', event => {
         $.ajax({
             type: 'POST',
             url: '/postGPS',
-            data: JSON.stringify(postdata),
+            data: JSON.stringify([name, position]),
             dataType : 'JSON',
             contentType: "application/json",
             success: function(data) {
-                //alert('통신 성공:'+data.result2)
-                if (data.result2 == "inbound") {
+                if (data.isInbound == "inbound") {
                     alarm()
                 }
             },
@@ -43,13 +43,10 @@ window.addEventListener('DOMContentLoaded', event => {
         })
     }
 
-    console.log(navigator.geolocation)
-    navigator.geolocation.watchPosition(function(position) {
-        console.log(1)
-        noticeBtn.textContent = "X: " + position.coords.latitude + ' Y: ' + position.coords.longitude;
-        console.log(position.coords.latitude)
-        postdata.latitude = position.coords.latitude;
-        postdata.longitude = position.coords.longitude;
-        console.log(111,postdata)
+    navigator.geolocation.watchPosition(function(p) {
+        noticeBtn.textContent = `${p.coords.latitude}, ${p.coords.longitude}`
+
+        position.latitude = p.coords.latitude;
+        position.longitude = p.coords.longitude;
     });
 });

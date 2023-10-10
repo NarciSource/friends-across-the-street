@@ -17,19 +17,21 @@ def board():
     return render_template('./board.html')
 
 
-userLocations = { }
+userPositions = { }
 
 @app.route('/postGPS', methods=['POST'])
 def postGPS():
-    data = request.get_json()
+    name, position = request.get_json()
 
-    userLocations[request.remote_addr] = (data['latitude'], data['longitude'])
+    print(name, position)
 
-    return jsonify(result = "success", result2 = 'inbound')
+    userPositions[request.remote_addr] = (name, position['latitude'], position['longitude'])
+
+    return jsonify(result = "success", isInbound = 'inbound')
 
 @app.route('/wherePeople', methods=['GET'])
 def wherePeople():
-    return jsonify(result = "success", userLocations = userLocations)
+    return jsonify(result = "success", userPositions = userPositions)
 
 
 

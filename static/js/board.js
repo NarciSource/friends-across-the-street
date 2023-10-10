@@ -9,29 +9,29 @@ window.addEventListener('DOMContentLoaded', event => {
 
 
 
-    overlayes = { }
-    function displayMarker(locPosition, ip) {
+    overlays = { }
+    function displayMarker(position, name) {
         var content = '<div><img class="pulse" draggable="false" unselectable="on" src="https://ssl.pstatic.net/static/maps/m/pin_rd.png" alt=""></div>';
 
-        if (overlayes[ip]) {
-            overlayes[ip].setPosition(locPosition)
+        if (overlays[name]) {
+            overlays[name].setPosition(position)
         }
         else {
             var overlay = new kakao.maps.CustomOverlay({
-                position: locPosition,
+                position,
                 content,
                 map,
             });
-            overlayes[ip] = overlay;
+            overlays[name] = overlay;
             overlay.setMap(map);
         }
     }
 
 
-    function displayCircle(lat,lon) {
+    function displayCircle(latLng) {
         // 지도에 표시할 원을 생성합니다
         var circle = new kakao.maps.Circle({
-            center : new kakao.maps.LatLng(lat,lon),  // 원의 중심좌표 입니다 
+            center : latLng,  // 원의 중심좌표 입니다 
             radius: 50, // 미터 단위의 원의 반지름입니다 
             strokeWeight: 5, // 선의 두께입니다 
             strokeColor: '#75B8FA', // 선의 색깔입니다
@@ -47,30 +47,30 @@ window.addEventListener('DOMContentLoaded', event => {
 
 
     setInterval(() => {
-        console.log("connect")
+        console.log("connect... Where are the people?");
+
         $.ajax({
             type: 'GET',
             url: '/wherePeople',
             dataType : 'JSON',
             success: function(data) {
-                userLocations = data.userLocations;
+                userPositions = data.userPositions;
+                console.log("userPositions", userPositions)
 
-                console.log("userLocations", userLocations)
+                userPositions = Object.entries(userPositions).map(([ip, [name, lat, lon]])=> [name||ip, new kakao.maps.LatLng(lat, lon)]);
+
 
                 $('#users').children('ul').empty();
 
-                for (var user in userLocations) {
-                    var [lat, lon] = userLocations[user];
-                    var moveLatLon = new kakao.maps.LatLng(lat, lon);
-
+                for (let [name, position] of userPositions) {                    
                     $('#users').children('ul').append(
                         $('<li>', {
-                            html: `<b><u>${user} :</u></b>&nbsp;&nbsp;${lat}, ${lon}`,
-                            click:()=> map.panTo(new kakao.maps.LatLng(...userLocations[user])),
+                            html: `<b><u>${name}</u> :</b>&nbsp;&nbsp;${position.Ma}, ${position.La}`,
+                            click: ()=> map.panTo(position),
                         }))
 
-                    displayMarker(moveLatLon, `<div style="padding:5px;">${user}위치</div>`);
-                }                
+                    displayMarker(position, name);
+                }
             },
             error: function(request, status, error){
                 alert('ajax 통신 실패', error);
@@ -87,7 +87,7 @@ window.addEventListener('DOMContentLoaded', event => {
                 console.log("crosswalks", crosswalks);
 
                 for (var [lat,lon] of crosswalks) {
-                    displayCircle(lat,lon)
+                    displayCircle(new kakao.maps.LatLng(lat, lon))
                 }
             }
         })
