@@ -46,6 +46,7 @@ window.addEventListener('DOMContentLoaded', event => {
     }
 
 
+    var firstAccess = true;
     setInterval(() => {
         console.log("connect... Where are the people?");
 
@@ -59,8 +60,15 @@ window.addEventListener('DOMContentLoaded', event => {
 
                 userPositions = Object.entries(userPositions).map(([ip, [name, lat, lon]])=> [name||ip, new kakao.maps.LatLng(lat, lon)]);
 
+                var bounds = new kakao.maps.LatLngBounds();
 
                 $('#users').children('ul').empty();
+                $('#users').children('ul').append(
+                    $('<li>', {
+                        html: '<b><u>전체 사용자</u></b>',
+                        click: ()=> map.setBounds(bounds),
+                    })
+                )
 
                 for (let [name, position] of userPositions) {                    
                     $('#users').children('ul').append(
@@ -70,6 +78,12 @@ window.addEventListener('DOMContentLoaded', event => {
                         }))
 
                     displayMarker(position, name);
+                    bounds.extend(position)
+                }
+
+                if (firstAccess) {
+                    firstAccess = false;
+                    map.setBounds(bounds);
                 }
             },
             error: function(request, status, error){
